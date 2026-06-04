@@ -206,20 +206,179 @@ const COUNTRIES_DATABASE = [
   { kos: "Kosovo" },
 ];
 
+const allCountryNames = COUNTRIES_DATABASE.map(
+  (item) => Object.values(item)[0],
+);
+
+// ---------- INJEÇÃO DE CSS PARA O AUTOCOMPLETE ----------
+const style = document.createElement("style");
+style.textContent = `
+  .autocomplete-container {
+    flex: 1;
+    position: relative;
+  }
+  .suggestions-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    margin-top: 4px;
+    width: 100%;
+  }
+  .suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .suggestion-item:last-child {
+    border-bottom: none;
+  }
+  .suggestion-item:hover,
+  .suggestion-item.selected {
+    background-color: var(--primary);
+    color: white;
+  }
+  .suggestions-box::-webkit-scrollbar {
+    width: 6px;
+  }
+  .suggestions-box::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  .suggestions-box::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+  }
+`;
+document.head.appendChild(style);
+
+// ---------- CRIAÇÃO DO DROPDOWN ----------
+const inputElement = document.getElementById("guess-input");
+const parentDiv = inputElement.parentNode;
+const container = document.createElement("div");
+container.className = "autocomplete-container";
+parentDiv.replaceChild(container, inputElement);
+container.appendChild(inputElement);
+const suggestionsBox = document.createElement("div");
+suggestionsBox.className = "suggestions-box";
+suggestionsBox.style.display = "none";
+container.appendChild(suggestionsBox);
+
+let currentSuggestions = [];
+let selectedIndex = -1;
+
+function normalizeText(str) {
+  return removeAcentos(str).toLowerCase().trim();
+}
+
+function filterCountries(searchText) {
+  if (!searchText) return [];
+  const normalizedSearch = normalizeText(searchText);
+  return allCountryNames
+    .filter((name) => normalizeText(name).includes(normalizedSearch))
+    .slice(0, 12); // até 12 sugestões
+}
+
+function updateSuggestions() {
+  const inputText = inputElement.value.trim();
+  const matches = filterCountries(inputText);
+  currentSuggestions = matches;
+  selectedIndex = -1;
+
+  if (matches.length === 0 || inputText === "") {
+    suggestionsBox.style.display = "none";
+    return;
+  }
+
+  suggestionsBox.innerHTML = "";
+  matches.forEach((name, idx) => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.textContent = name;
+    div.addEventListener("click", () => {
+      inputElement.value = name;
+      suggestionsBox.style.display = "none";
+      inputElement.focus();
+    });
+    suggestionsBox.appendChild(div);
+  });
+  suggestionsBox.style.display = "block";
+}
+
+function updateSelectedItem(items) {
+  items.forEach((item, idx) => {
+    if (idx === selectedIndex) {
+      item.classList.add("selected");
+      item.scrollIntoView({ block: "nearest" });
+    } else {
+      item.classList.remove("selected");
+    }
+  });
+}
+
+function closeSuggestions() {
+  suggestionsBox.style.display = "none";
+  selectedIndex = -1;
+  currentSuggestions = [];
+}
+
+inputElement.addEventListener("input", updateSuggestions);
+inputElement.addEventListener("keydown", (e) => {
+  const items = document.querySelectorAll(".suggestion-item");
+  if (items.length === 0) return;
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    selectedIndex = (selectedIndex + 1) % items.length;
+    updateSelectedItem(items);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+    updateSelectedItem(items);
+  } else if (e.key === "Enter") {
+    if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+      e.preventDefault();
+      // Preenche o input e fecha o dropdown
+      inputElement.value = currentSuggestions[selectedIndex];
+      closeSuggestions();
+      // Agora envia automaticamente o palpite
+      processGuess();
+    }
+  } else if (e.key === "Escape") {
+    closeSuggestions();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (!container.contains(e.target)) {
+    closeSuggestions();
+  }
+});
+
+// ---------- JOGO (restante inalterado) ----------
+
 let currentCountry = null;
 let tipLevel = 1;
 let attempt = 0;
 const totalAttemptsPerTip = 2;
 let wrongGuesses = [];
 let allGuesses = [];
-let hasUnsavedProgress = false; // Flag para o beforeunload
+let hasUnsavedProgress = false;
 
 window.addEventListener("beforeunload", function (e) {
   const gameView = document.getElementById("game-view");
   const resultScreen = document.getElementById("result-screen");
   const isGameActive = gameView && gameView.style.display === "block";
   const isGameFinished = resultScreen && resultScreen.style.display === "block";
-
   if (hasUnsavedProgress && isGameActive && !isGameFinished) {
     e.preventDefault();
     e.returnValue = "";
@@ -368,7 +527,6 @@ function parseCountryDetails(data, name, code) {
 }
 
 function generateTipsGroups(d) {
-  // Nível 1
   let list1 = [];
   if (d.area !== "Não informado")
     list1.push(`A área do país é de: \n${d.area}`);
@@ -382,7 +540,6 @@ function generateTipsGroups(d) {
     list1.push(`Este país é independente? \n${d.dependent}`);
   if (list1.length === 0) list1 = ["Dica indisponível para este país."];
 
-  // Nível 2
   let list2 = [];
   if (d.continent !== "Não informado")
     list2.push(`Este país está localizado no continente: \n${d.continent}`);
@@ -394,7 +551,6 @@ function generateTipsGroups(d) {
     list2.push(`O PIB total deste país é de: \n${d.gdp}`);
   if (list2.length === 0) list2 = ["Dica indisponível para este país."];
 
-  // Nível 3 (inclui a bandeira como uma das opções)
   let list3 = [];
   if (d.idioms !== "Não informado")
     list3.push(`Os idiomas falados neste país são: \n${d.idioms}`);
@@ -474,6 +630,8 @@ function processGuess() {
   const feedbackEl = document.getElementById("feedback-message");
   const guess = inputEl.value.trim();
   if (!guess) return;
+
+  closeSuggestions();
 
   if (!hasUnsavedProgress) {
     hasUnsavedProgress = true;
@@ -567,7 +725,15 @@ function endGame(isWin) {
 
 document.getElementById("btn-submit").addEventListener("click", processGuess);
 document.getElementById("guess-input").addEventListener("keypress", (e) => {
-  if (e.key === "Enter") processGuess();
+  if (e.key === "Enter") {
+    if (
+      selectedIndex === -1 ||
+      document.querySelectorAll(".suggestion-item").length === 0
+    ) {
+      e.preventDefault();
+      processGuess();
+    }
+  }
 });
 document.getElementById("btn-restart").addEventListener("click", initGame);
 

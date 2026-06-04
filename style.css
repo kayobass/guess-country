@@ -23,18 +23,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 90vh;
   padding: 16px;
 }
 
 .game-container {
   background-color: var(--card-bg);
   width: 100%;
-  max-width: 700px; /* Aumentado de 550px para 700px */
+  max-width: 700px;
   border-radius: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
-  overflow: hidden;
+  overflow: visible;
   padding: 24px 28px;
   transition: all 0.2s ease;
 }
@@ -194,8 +194,14 @@ header p {
   flex-wrap: wrap;
 }
 
-input[type="text"] {
+/* Container do autocomplete */
+.autocomplete-container {
   flex: 1;
+  position: relative;
+}
+
+input[type="text"] {
+  width: 100%;
   background-color: #0f172a;
   border: 2px solid var(--border);
   padding: 14px 16px;
@@ -329,6 +335,52 @@ button:active {
   padding: 20px;
 }
 
+/* Caixa de sugestões (autocomplete) */
+.suggestions-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  margin-top: 4px;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.95rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item.selected {
+  background-color: var(--primary);
+  color: white;
+}
+
+.suggestions-box::-webkit-scrollbar {
+  width: 6px;
+}
+.suggestions-box::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 4px;
+}
+.suggestions-box::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -365,4 +417,22 @@ button:active {
 .guesses-history::-webkit-scrollbar-thumb {
   background: var(--primary);
   border-radius: 4px;
+}
+
+/* Garantir que o container do autocomplete ocupe toda a largura */
+.autocomplete-container {
+  flex: 1;
+  position: relative;
+}
+
+.autocomplete-container input {
+  width: 100%;
+}
+
+.suggestions-box {
+  max-height: 500px; /* Altura maior */
+  overflow-y: auto;
+  width: 100%; /* Mesma largura do input */
+  left: 0;
+  right: 0;
 }

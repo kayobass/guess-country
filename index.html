@@ -54,12 +54,22 @@
         <div class="tips-section" id="tips-container"></div>
 
         <div class="input-group" id="action-inputs">
-          <input
-            type="text"
-            id="guess-input"
-            placeholder="Digite o nome do país..."
-            autocomplete="off"
-          />
+          <div
+            class="autocomplete-container"
+            style="flex: 1; position: relative"
+          >
+            <input
+              type="text"
+              id="guess-input"
+              placeholder="Digite o nome do país..."
+              autocomplete="off"
+            />
+            <div
+              id="suggestions-box"
+              class="suggestions-box"
+              style="display: none"
+            ></div>
+          </div>
           <button id="btn-submit">Enviar</button>
         </div>
 
