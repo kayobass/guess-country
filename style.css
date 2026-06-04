@@ -130,6 +130,26 @@ header p {
   border-radius: 0 8px 8px 0;
   margin-bottom: 15px;
   animation: fadeIn 0.5s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tip-flag {
+  flex-shrink: 0;
+}
+
+.tip-flag img {
+  width: 60px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.tip-content-wrapper {
+  flex: 1;
 }
 
 .tip-title {

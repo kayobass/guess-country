@@ -271,7 +271,7 @@ async function fetchCountryData(code) {
 
 function parseCountryDetails(data, name, code) {
   let capitals = "Não informado";
-  if (data.capital) {
+  if (data.capital && data.capital.length > 0 && data.capital[0]) {
     capitals = Array.isArray(data.capital)
       ? data.capital.join(", ")
       : data.capital;
@@ -291,6 +291,7 @@ function parseCountryDetails(data, name, code) {
         .join(", ");
     }
   }
+  if (!currencies || currencies === "") currencies = "Não informado";
 
   let idioms = "Não informado";
   if (data.languages) {
@@ -301,16 +302,17 @@ function parseCountryDetails(data, name, code) {
     idioms = langData
       .map((n) =>
         typeof n === "object"
-          ? n.nativeName
-            ? Array.isArray(n.nativeName)
-              ? n.nativeName[0]
-              : n.nativeName
+          ? n.name
+            ? Array.isArray(n.name)
+              ? n.name[0]
+              : n.name
             : n
           : n,
       )
       .filter(Boolean)
       .join(", ");
   }
+  if (!idioms || idioms === "") idioms = "Não informado";
 
   let borders = "Nenhuma (Ilha)";
   if (data.borders && Array.isArray(data.borders) && data.borders.length > 0) {
@@ -319,6 +321,9 @@ function parseCountryDetails(data, name, code) {
 
   let formatNum = (num) =>
     num ? num.toLocaleString("pt-BR") : "Não informado";
+
+  let flagSvg = data.flag ? data.flag.svg : null;
+  let flagEmoji = data.flag && data.flag.emoji ? data.flag.emoji : "";
 
   return {
     name: name,
@@ -343,32 +348,71 @@ function parseCountryDetails(data, name, code) {
         : "Não informado",
     borders: borders,
     idioms: idioms,
+    flagSvg: flagSvg,
+    flagEmoji: flagEmoji,
   };
 }
 
 function generateTipsGroups(d) {
-  const list1 = [
-    `A área do país é de: \n${d.area}`,
-    `A população do país é de: \n${d.population}`,
-    `A densidade demográfica é de: \n${d.density}`,
-    `Este país fica no fuso horário: \n${d.timezone}`,
-    `Este país é independente? \n${d.dependent}`,
-  ];
-  const list2 = [
-    `Este país está localizado no continente: \n${d.continent}`,
-    `O símbolo da moeda deste país é: \n${d.currencySymbol}`,
-    `O IDH aproximado deste país é: \n${d.hdi}`,
-    `O PIB total deste país é de: \n${d.gdp}`,
-  ];
-  const list3 = [
-    `Os idiomas falados neste país são: \n${d.idioms}`,
-    `A capital deste país é: \n${d.capital}`,
-    `As fronteiras deste país são: \n${d.borders}`,
-  ];
+  // Nível 1
+  let list1 = [];
+  if (d.area !== "Não informado")
+    list1.push(`A área do país é de: \n${d.area}`);
+  if (d.population !== "Não informado")
+    list1.push(`A população do país é de: \n${d.population}`);
+  if (d.density !== "Não informado")
+    list1.push(`A densidade demográfica é de: \n${d.density}`);
+  if (d.timezone !== "Não informado")
+    list1.push(`Este país fica no fuso horário: \n${d.timezone}`);
+  if (d.dependent !== "Não informado")
+    list1.push(`Este país é independente? \n${d.dependent}`);
+  if (list1.length === 0) list1 = ["Dica indisponível para este país."];
 
-  currentCountry.tipsGroup[1] = list1[Math.floor(Math.random() * list1.length)];
-  currentCountry.tipsGroup[2] = list2[Math.floor(Math.random() * list2.length)];
-  currentCountry.tipsGroup[3] = list3[Math.floor(Math.random() * list3.length)];
+  // Nível 2
+  let list2 = [];
+  if (d.continent !== "Não informado")
+    list2.push(`Este país está localizado no continente: \n${d.continent}`);
+  if (d.currencySymbol !== "Não informado")
+    list2.push(`O símbolo da moeda deste país é: \n${d.currencySymbol}`);
+  if (d.hdi !== "Não informado")
+    list2.push(`O IDH aproximado deste país é: \n${d.hdi}`);
+  if (d.gdp !== "Não informado")
+    list2.push(`O PIB total deste país é de: \n${d.gdp}`);
+  if (list2.length === 0) list2 = ["Dica indisponível para este país."];
+
+  // Nível 3 (inclui a bandeira como uma das opções)
+  let list3 = [];
+  if (d.idioms !== "Não informado")
+    list3.push(`Os idiomas falados neste país são: \n${d.idioms}`);
+  if (d.capital !== "Não informado")
+    list3.push(`A capital deste país é: \n${d.capital}`);
+  if (d.borders !== "Nenhuma (Ilha)" && d.borders !== "Não informado")
+    list3.push(`As fronteiras deste país são: \n${d.borders}`);
+  if (d.flagSvg) {
+    list3.push(`bandeira::${d.flagSvg}`);
+  }
+  if (list3.length === 0) list3 = ["Dica indisponível para este país."];
+
+  const tip1Text = list1[Math.floor(Math.random() * list1.length)];
+  const tip2Text = list2[Math.floor(Math.random() * list2.length)];
+  const tip3Raw = list3[Math.floor(Math.random() * list3.length)];
+
+  let tip3Html;
+  if (typeof tip3Raw === "string" && tip3Raw.startsWith("bandeira::")) {
+    const flagSvgUrl = tip3Raw.split("::")[1];
+    tip3Html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <span style="flex: 1;">A bandeira deste país é:</span>
+                <img src="${flagSvgUrl}" width="60" style="border-radius: 8px; border: 1px solid var(--border); background: white;">
+            </div>
+        `;
+  } else {
+    tip3Html = `<div>${tip3Raw}</div>`;
+  }
+
+  currentCountry.tipsGroup[1] = tip1Text;
+  currentCountry.tipsGroup[2] = tip2Text;
+  currentCountry.tipsGroup[3] = tip3Html;
 }
 
 function showNextTip() {
@@ -377,10 +421,12 @@ function showNextTip() {
 
   const card = document.createElement("div");
   card.className = "tip-card";
-  card.innerHTML = `
+
+  let contentHtml = `
         <div class="tip-title">💡 Dica ${tipLevel}</div>
         <div class="tip-content">${currentCountry.tipsGroup[tipLevel]}</div>
     `;
+  card.innerHTML = contentHtml;
   container.appendChild(card);
 }
 
@@ -395,12 +441,10 @@ function updateLifeBar() {
 function updateWrongGuessesDisplay() {
   const container = document.getElementById("guess-tag-container");
   const area = document.getElementById("wrong-guesses-area");
-
   if (wrongGuesses.length === 0) {
     area.style.display = "none";
     return;
   }
-
   area.style.display = "block";
   container.innerHTML = "";
   wrongGuesses.forEach((guess) => {
@@ -415,11 +459,9 @@ function processGuess() {
   const inputEl = document.getElementById("guess-input");
   const feedbackEl = document.getElementById("feedback-message");
   const guess = inputEl.value.trim();
-
   if (!guess) return;
 
   const isCorrect = nomesIguais(guess, currentCountry.name);
-
   allGuesses.push({ text: guess, result: isCorrect });
 
   if (isCorrect) {
@@ -485,7 +527,7 @@ function endGame(isWin) {
   const d = currentCountry.details;
   const detailsContainer = document.getElementById("country-details");
   detailsContainer.innerHTML = `
-        <div class="detail-item"><strong>🌍 País:</strong> ${d.name} (${d.code})</div>
+        <div class="detail-item"><strong>🌍 País:</strong> ${d.name} (${d.code}) - ${d.flagEmoji}</div>
         <div class="detail-item"><strong>🔹 Capital:</strong> ${d.capital}</div>
         <div class="detail-item"><strong>🔹 Continente:</strong> ${d.continent}</div>
         <div class="detail-item"><strong>🔹 É Dependente?</strong> ${d.dependent}</div>

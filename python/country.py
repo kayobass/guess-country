@@ -94,7 +94,7 @@ class Country:
         gdp_formatted = f"US$ {self.gdp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if self.gdp else "Não informado"
 
         languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
-        
+
         capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
 
         borders_text = ", ".join(self.borders) if self.borders else "Sem Fronteiras (Ilha)"
@@ -129,7 +129,7 @@ class Country:
                 f"Os idiomas falados neste país são: \n {languages_text}", 
                 f"A capital deste país é: \n {capitals_text}", 
                 f"As fronteiras deste país são: \n {borders_text}",
-                f"O bandeira deste país é: \n {flag_emoji}"
+                f"A bandeira deste país é: \n {flag_emoji}"
             ]
 
             ready_tips = list(filter(lambda tip: "Não informado" not in tip, tips))
