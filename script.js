@@ -214,14 +214,12 @@ let wrongGuesses = [];
 let allGuesses = [];
 let hasUnsavedProgress = false; // Flag para o beforeunload
 
-// Evento beforeunload corrigido
 window.addEventListener("beforeunload", function (e) {
   const gameView = document.getElementById("game-view");
   const resultScreen = document.getElementById("result-screen");
   const isGameActive = gameView && gameView.style.display === "block";
   const isGameFinished = resultScreen && resultScreen.style.display === "block";
 
-  // Só ativa se houver progresso não salvo E o jogo estiver ativo (não finalizado)
   if (hasUnsavedProgress && isGameActive && !isGameFinished) {
     e.preventDefault();
     e.returnValue = "";
@@ -240,7 +238,7 @@ async function initGame() {
 
   wrongGuesses = [];
   allGuesses = [];
-  hasUnsavedProgress = false; // Reset ao iniciar novo jogo
+  hasUnsavedProgress = false;
   updateWrongGuessesDisplay();
   document.getElementById("wrong-guesses-area").style.display = "none";
 
@@ -477,7 +475,6 @@ function processGuess() {
   const guess = inputEl.value.trim();
   if (!guess) return;
 
-  // Marca que houve interação (palpite)
   if (!hasUnsavedProgress) {
     hasUnsavedProgress = true;
   }
@@ -515,7 +512,6 @@ function processGuess() {
 }
 
 function endGame(isWin) {
-  // Ao finalizar, não precisa mais do pop-up
   hasUnsavedProgress = false;
 
   document.getElementById("action-inputs").style.display = "none";
@@ -569,7 +565,6 @@ function endGame(isWin) {
   rScreen.style.display = "block";
 }
 
-// Event listeners
 document.getElementById("btn-submit").addEventListener("click", processGuess);
 document.getElementById("guess-input").addEventListener("keypress", (e) => {
   if (e.key === "Enter") processGuess();
