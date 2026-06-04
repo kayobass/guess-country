@@ -212,15 +212,17 @@ let attempt = 0;
 const totalAttemptsPerTip = 2;
 let wrongGuesses = [];
 let allGuesses = [];
+let hasUnsavedProgress = false; // Flag para o beforeunload
 
+// Evento beforeunload corrigido
 window.addEventListener("beforeunload", function (e) {
   const gameView = document.getElementById("game-view");
   const resultScreen = document.getElementById("result-screen");
-  if (
-    gameView &&
-    gameView.style.display === "block" &&
-    (!resultScreen || resultScreen.style.display !== "block")
-  ) {
+  const isGameActive = gameView && gameView.style.display === "block";
+  const isGameFinished = resultScreen && resultScreen.style.display === "block";
+
+  // Só ativa se houver progresso não salvo E o jogo estiver ativo (não finalizado)
+  if (hasUnsavedProgress && isGameActive && !isGameFinished) {
     e.preventDefault();
     e.returnValue = "";
   }
@@ -238,6 +240,7 @@ async function initGame() {
 
   wrongGuesses = [];
   allGuesses = [];
+  hasUnsavedProgress = false; // Reset ao iniciar novo jogo
   updateWrongGuessesDisplay();
   document.getElementById("wrong-guesses-area").style.display = "none";
 
@@ -414,11 +417,11 @@ function generateTipsGroups(d) {
   if (typeof tip3Raw === "string" && tip3Raw.startsWith("bandeira::")) {
     const flagSvgUrl = tip3Raw.split("::")[1];
     tip3Html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <span style="flex: 1;">A bandeira deste país é:</span>
-                <img src="${flagSvgUrl}" width="60" style="border-radius: 8px; border: 1px solid var(--border); background: white;">
-            </div>
-        `;
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <span style="flex: 1;">A bandeira deste país é:</span>
+        <img src="${flagSvgUrl}" width="60" style="border-radius: 8px; border: 1px solid var(--border); background: white;">
+      </div>
+    `;
   } else {
     tip3Html = `<div>${tip3Raw}</div>`;
   }
@@ -436,9 +439,9 @@ function showNextTip() {
   card.className = "tip-card";
 
   let contentHtml = `
-        <div class="tip-title">💡 Dica ${tipLevel}</div>
-        <div class="tip-content">${currentCountry.tipsGroup[tipLevel]}</div>
-    `;
+    <div class="tip-title">💡 Dica ${tipLevel}</div>
+    <div class="tip-content">${currentCountry.tipsGroup[tipLevel]}</div>
+  `;
   card.innerHTML = contentHtml;
   container.appendChild(card);
 }
@@ -474,6 +477,11 @@ function processGuess() {
   const guess = inputEl.value.trim();
   if (!guess) return;
 
+  // Marca que houve interação (palpite)
+  if (!hasUnsavedProgress) {
+    hasUnsavedProgress = true;
+  }
+
   const isCorrect = nomesIguais(guess, currentCountry.name);
   allGuesses.push({ text: guess, result: isCorrect });
 
@@ -507,6 +515,9 @@ function processGuess() {
 }
 
 function endGame(isWin) {
+  // Ao finalizar, não precisa mais do pop-up
+  hasUnsavedProgress = false;
+
   document.getElementById("action-inputs").style.display = "none";
   document.getElementById("feedback-message").innerText = "";
 
@@ -521,6 +532,24 @@ function endGame(isWin) {
     rTitle.style.color = "var(--danger)";
   }
 
+  const d = currentCountry.details;
+  const detailsContainer = document.getElementById("country-details");
+  detailsContainer.innerHTML = `
+    <div class="detail-item"><strong>🌍 País:</strong> ${d.name} (${d.code}) - ${d.flagEmoji}</div>
+    <div class="detail-item"><strong>🔹 Capital:</strong> ${d.capital}</div>
+    <div class="detail-item"><strong>🔹 Continente:</strong> ${d.continent}</div>
+    <div class="detail-item"><strong>🔹 É Dependente?</strong> ${d.dependent}</div>
+    <div class="detail-item"><strong>📐 Área:</strong> ${d.area}</div>
+    <div class="detail-item"><strong>👥 População:</strong> ${d.population}</div>
+    <div class="detail-item"><strong>📉 Densidade:</strong> ${d.density}</div>
+    <div class="detail-item"><strong>🗣️ Idiomas:</strong> ${d.idioms}</div>
+    <div class="detail-item"><strong>🪙 Moeda (Símbolo):</strong> ${d.currencySymbol}</div>
+    <div class="detail-item"><strong>🕒 Timezone:</strong> ${d.timezone}</div>
+    <div class="detail-item"><strong>📊 IDH:</strong> ${d.hdi}</div>
+    <div class="detail-item"><strong>💰 PIB:</strong> ${d.gdp}</div>
+    <div class="detail-item"><strong>🗺️ Fronteiras:</strong> ${d.borders}</div>
+  `;
+
   const guessesContainer = document.getElementById("guesses-history");
   if (allGuesses.length > 0) {
     let guessesHtml = `<div style="font-weight: bold; margin-bottom: 10px;">📝 Seus palpites:</div>`;
@@ -528,32 +557,14 @@ function endGame(isWin) {
       const status = g.result ? "✅ ACERTOU" : "❌ ERROU";
       const statusClass = g.result ? "right" : "wrong";
       guessesHtml += `<div class="guess-item ${statusClass}">
-                                <strong>Palpite ${idx + 1}:</strong> ${g.text} (${status})
-                            </div>`;
+        <strong>Palpite ${idx + 1}:</strong> ${g.text} (${status})
+      </div>`;
     });
     guessesContainer.innerHTML = guessesHtml;
   } else {
     guessesContainer.innerHTML =
       '<div class="detail-item">Nenhum palpite registrado.</div>';
   }
-
-  const d = currentCountry.details;
-  const detailsContainer = document.getElementById("country-details");
-  detailsContainer.innerHTML = `
-        <div class="detail-item"><strong>🌍 País:</strong> ${d.name} (${d.code}) - ${d.flagEmoji}</div>
-        <div class="detail-item"><strong>🔹 Capital:</strong> ${d.capital}</div>
-        <div class="detail-item"><strong>🔹 Continente:</strong> ${d.continent}</div>
-        <div class="detail-item"><strong>🔹 É Dependente?</strong> ${d.dependent}</div>
-        <div class="detail-item"><strong>📐 Área:</strong> ${d.area}</div>
-        <div class="detail-item"><strong>👥 População:</strong> ${d.population}</div>
-        <div class="detail-item"><strong>📉 Densidade:</strong> ${d.density}</div>
-        <div class="detail-item"><strong>🗣️ Idiomas:</strong> ${d.idioms}</div>
-        <div class="detail-item"><strong>🪙 Moeda (Símbolo):</strong> ${d.currencySymbol}</div>
-        <div class="detail-item"><strong>🕒 Timezone:</strong> ${d.timezone}</div>
-        <div class="detail-item"><strong>📊 IDH:</strong> ${d.hdi}</div>
-        <div class="detail-item"><strong>💰 PIB:</strong> ${d.gdp}</div>
-        <div class="detail-item"><strong>🗺️ Fronteiras:</strong> ${d.borders}</div>
-    `;
 
   rScreen.style.display = "block";
 }

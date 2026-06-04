@@ -24,18 +24,47 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;
+  padding: 16px;
 }
 
 .game-container {
   background-color: var(--card-bg);
   width: 100%;
-  max-width: 550px;
-  border-radius: 16px;
+  max-width: 700px; /* Aumentado de 550px para 700px */
+  border-radius: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
   overflow: hidden;
-  padding: 30px;
+  padding: 24px 28px;
+  transition: all 0.2s ease;
+}
+
+/* Ajuste para telas muito pequenas (celulares) */
+@media (max-width: 600px) {
+  .game-container {
+    padding: 18px;
+    border-radius: 20px;
+  }
+  header h1 {
+    font-size: 1.5rem;
+  }
+  .tip-card {
+    flex-direction: column;
+  }
+  .tip-content {
+    font-size: 0.95rem;
+  }
+  input[type="text"],
+  button {
+    padding: 12px 16px;
+  }
+}
+
+/* Para desktop maior, ainda mantém 700px centralizado */
+@media (min-width: 1200px) {
+  .game-container {
+    max-width: 750px;
+  }
 }
 
 header {
@@ -52,6 +81,7 @@ header h1 {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 header p {
@@ -66,8 +96,10 @@ header p {
   margin-bottom: 25px;
   background: rgba(255, 255, 255, 0.03);
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .life-container {
@@ -113,10 +145,11 @@ header p {
   align-items: center;
   gap: 6px;
   color: #fecaca;
+  transition: transform 0.1s;
 }
 
-.guess-tag span {
-  font-weight: normal;
+.guess-tag:hover {
+  transform: scale(1.02);
 }
 
 .tips-section {
@@ -126,30 +159,14 @@ header p {
 .tip-card {
   background: linear-gradient(135deg, #1e293b, #0f172a);
   border-left: 4px solid var(--primary);
-  padding: 15px;
-  border-radius: 0 8px 8px 0;
+  padding: 16px 18px;
+  border-radius: 0 12px 12px 0;
   margin-bottom: 15px;
   animation: fadeIn 0.5s ease;
   display: flex;
   align-items: flex-start;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-.tip-flag {
-  flex-shrink: 0;
-}
-
-.tip-flag img {
-  width: 60px;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: white;
-}
-
-.tip-content-wrapper {
-  flex: 1;
 }
 
 .tip-title {
@@ -164,15 +181,17 @@ header p {
 }
 
 .tip-content {
-  font-size: 1.05rem;
+  font-size: 1rem;
   white-space: pre-line;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 .input-group {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 input[type="text"] {
@@ -180,7 +199,7 @@ input[type="text"] {
   background-color: #0f172a;
   border: 2px solid var(--border);
   padding: 14px 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-main);
   font-size: 1rem;
   outline: none;
@@ -195,14 +214,15 @@ button {
   background-color: var(--primary);
   color: white;
   border: none;
-  padding: 0 24px;
-  border-radius: 8px;
+  padding: 0 28px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   transition:
     background-color 0.2s,
     transform 0.1s;
+  white-space: nowrap;
 }
 
 button:hover {
@@ -210,7 +230,7 @@ button:hover {
 }
 
 button:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .feedback {
@@ -218,6 +238,7 @@ button:active {
   font-weight: bold;
   min-height: 24px;
   margin-bottom: 15px;
+  font-size: 1rem;
 }
 
 .feedback.correct {
@@ -230,7 +251,7 @@ button:active {
 .result-screen {
   display: none;
   background-color: rgba(15, 23, 42, 0.95);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px;
   border: 1px solid var(--border);
   margin-top: 10px;
@@ -241,28 +262,43 @@ button:active {
   text-align: center;
   font-size: 1.4rem;
   font-weight: bold;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .country-details,
 .guesses-history {
   font-size: 0.95rem;
-  line-height: 1.6;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  max-height: 250px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
   overflow-y: auto;
-  padding-right: 5px;
+  padding-right: 6px;
   margin-bottom: 20px;
+}
+
+/* Grid de duas colunas para as informações do país em desktop */
+@media (min-width: 550px) {
+  .country-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 }
 
 .detail-item,
 .guess-item {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s;
+}
+
+.detail-item:hover,
+.guess-item:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .guess-item.wrong {
@@ -277,6 +313,9 @@ button:active {
   padding: 14px;
   margin-top: 10px;
   background-color: var(--success);
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
 .btn-restart:hover {
@@ -287,6 +326,7 @@ button:active {
   text-align: center;
   color: var(--text-muted);
   font-style: italic;
+  padding: 20px;
 }
 
 @keyframes fadeIn {
@@ -309,4 +349,20 @@ button:active {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Scrollbar personalizada (opcional) */
+.country-details::-webkit-scrollbar,
+.guesses-history::-webkit-scrollbar {
+  width: 6px;
+}
+.country-details::-webkit-scrollbar-track,
+.guesses-history::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 4px;
+}
+.country-details::-webkit-scrollbar-thumb,
+.guesses-history::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
 }
