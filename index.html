@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guess the Country Game</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <header>
+        <h1>🗺️ Guess the Country</h1>
+        <p>Tente adivinhar o país secreto com as dicas fornecidas!</p>
+      </header>
+
+      <div id="setup-view" class="loading">
+        Sorteando um país e obtendo dados oficiais...
+      </div>
+
+      <div id="game-view" style="display: none">
+        <div class="status-bar">
+          <div class="life-container">
+            <span>❤️ Vida:</span>
+            <div class="life-bar">
+              <div id="life-fill" class="life-fill"></div>
+            </div>
+            <span id="life-text">(2/2)</span>
+          </div>
+          <div>
+            <span
+              id="round-text"
+              style="font-weight: bold; color: var(--primary)"
+              >Dica 1 de 3</span
+            >
+          </div>
+        </div>
+
+        <div
+          id="wrong-guesses-area"
+          class="wrong-guesses-area"
+          style="display: none"
+        >
+          <div id="guess-tag-container" class="guess-tag-container"></div>
+        </div>
+
+        <div class="tips-section" id="tips-container"></div>
+
+        <div class="input-group" id="action-inputs">
+          <input
+            type="text"
+            id="guess-input"
+            placeholder="Digite o nome do país..."
+            autocomplete="off"
+          />
+          <button id="btn-submit">Enviar</button>
+        </div>
+
+        <div id="feedback-message" class="feedback"></div>
+
+        <div id="result-screen" class="result-screen">
+          <div id="result-title" class="result-title"></div>
+          <div id="guesses-history" class="guesses-history"></div>
+          <div id="country-details" class="country-details"></div>
+          <button id="btn-restart" class="btn-restart">Jogar Novamente</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
