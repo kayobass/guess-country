@@ -17,6 +17,7 @@ class Country:
         self.gdp = None
         self.density = None
         self.borders = []
+        self.flag = None
         self.__implement_data()
 
     def __implement_data(self):
@@ -58,6 +59,9 @@ class Country:
             borders_list = data.get("borders")
             self.borders = borders_list if isinstance(borders_list, list) else []
 
+            flag_data = data.get("flag")
+            self.flag = flag_data.get("emoji") if isinstance(flag_data, dict) else None
+
     def __get_data(self):
         try:
             url = f"https://restcountries.com/v4/alpha/{self.code}"
@@ -70,47 +74,63 @@ class Country:
             return None
         
     def get_tips(self, level):
-        languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
-        capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
-        currencies_text = ", ".join(self.currencies_symbol) if self.currencies_symbol else "Não informado"
-        borders_text = ", ".join(self.borders) if self.borders else "Sem Fronteiras (Ilha)"
-        
-        population_formatted = f"{self.population:,}".replace(",", ".") if self.population else "Não informado"
+
+        first_tips = []
+
         area_formatted = f"{self.area:,}".replace(",", ".") if self.area else "Não informado"
+        first_tips.append(f"A área do país é de: \n {area_formatted} km²") if area_formatted != "Não informado" else None
+
+        population_formatted = f"{self.population:,}".replace(",", ".") if self.population else "Não informado"
+        first_tips.append(f"A população do país é de: \n {population_formatted} habitantes") if population_formatted != "Não informado" else None
+
         density_formatted = f"{self.density:.2f}".replace(".", ",") if self.density else "Não informado"
-        gdp_formatted = f"US$ {self.gdp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if self.gdp else "Não informado"
-        hdi_formatted = f"{self.hdi}".replace(".", ",") if self.hdi else "Não informado"
-        
-        continent_text = self.continent if self.continent else "Não informado"
+        first_tips.append(f"A densidade demográfica do país é de: \n {density_formatted} hab/km²") if density_formatted != "Não informado" else None
+
         timezone_text = self.timezone if self.timezone else "Não informado"
+        first_tips.append(f"Este país fica no fuso horário: \n {timezone_text}") if timezone_text != "Não informado" else None
+
         dependency_status = "Sim" if self.dependent else "Não (País Soberano)"
+        first_tips.append(f"Este país é independente? \n {dependency_status}")
+
+        second_tips = []
+
+        continent_text = self.continent if self.continent else "Não informado"
+        second_tips.append(f"Este país está localizado no continente: \n {continent_text}") if continent_text != "Não informado" else None
+
+        currencies_text = ", ".join(self.currencies_symbol) if self.currencies_symbol else "Não informado"
+        second_tips.append(f"Moedas adotadas no país: \n {currencies_text}") if currencies_text != "Não informado" else None
+
+        hdi_formatted = f"{self.hdi}".replace(".", ",") if self.hdi else "Não informado"
+        second_tips.append(f"O IDH aproximado deste país é: \n {hdi_formatted}") if hdi_formatted != "Não informado" else None
+
+        gdp_formatted = f"US$ {self.gdp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if self.gdp else "Não informado"
+        second_tips.append(f"O PIB total deste país é de: \n {gdp_formatted}") if gdp_formatted != "Não informado" else None
+
+        
+        third_tips = []
+
+        languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
+        third_tips.append(f"Os idiomas falados neste país são: \n {languages_text}") if languages_text != "Não informado" else None
+
+        capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
+        third_tips.append(f"A capital deste país é: \n {capitals_text}") if capitals_text != "Não informado" else None
+
+        borders_text = ", ".join(self.borders) if self.borders else "Sem Fronteiras (Ilha)"
+        third_tips.append(f"As fronteiras deste país são: \n {borders_text}")
+        
+        flag_emoji = self.flag if self.flag else "Não informado"
+        third_tips.append(f"A bandeira deste país é: \n {flag_emoji}") if flag_emoji != "Não informado" else None
 
         if level == 1:
-            tips = [
-                f"A área do país é de: \n {area_formatted} km²", 
-                f"A população do país é de: \n {population_formatted} habitantes", 
-                f"A densidade demográfica é de: \n {density_formatted} hab/km²", 
-                f"Este país fica no fuso horário: \n {timezone_text}", 
-                f"Este país é independente? \n {dependency_status}"
-            ]
-            return random.choice(tips)
+
+            return random.choice(first_tips) if first_tips else "Nenhuma dica disponível para este nível."
             
         elif level == 2:
-            tips = [
-                f"Este país está localizado no continente: \n {continent_text}",  
-                f"O símbolo da moeda deste país é: \n {currencies_text}", 
-                f"O IDH aproximado deste país é: \n {hdi_formatted}", 
-                f"O PIB total deste país é de: \n {gdp_formatted}"
-            ]
-            return random.choice(tips)
+            
+            return random.choice(second_tips) if second_tips else "Nenhuma dica disponível para este nível."
             
         elif level == 3:
-            tips = [
-                f"Os idiomas falados neste país são: \n {languages_text}", 
-                f"A capital deste país é: \n {capitals_text}", 
-                f"As fronteiras deste país são: \n {borders_text}"
-            ]
-            return random.choice(tips)
+            return random.choice(third_tips) if third_tips else "Nenhuma dica disponível para este nível."
             
         return "Nível de dica inválido."
         
@@ -127,11 +147,12 @@ class Country:
         hdi_formatted = f"{self.hdi}".replace(".", ",") if self.hdi else "Não informado"
         
         dependency_status = "Sim" if self.dependent else "Não (País Soberano)"
+        flag_emoji = self.flag if self.flag else "🏳️"
 
         return (
             f"\n"
             f"{'='*40}\n"
-            f" 🌍 INFORMAÇÕES SOBRE: {self.name.upper()} ({self.code})\n"
+            f" 🌍 INFORMAÇÕES SOBRE: {self.name.upper()} ({self.code}) - {flag_emoji}\n"
             f"{'='*40}\n"
             f"🔹 Capital: {capitals_text}\n"
             f"🔹 Continente: {self.continent or 'Não informado'}\n"
