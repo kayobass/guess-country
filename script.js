@@ -377,7 +377,7 @@ function generateTipsGroups(d) {
   if (d.population !== "Não informado")
     list1.push(`A população do país é de: \n${d.population}`);
   if (d.density !== "Não informado")
-    list1.push(`A densidade demográfica é de: \n${d.density}`);
+    list1.push(`A densidade demográfica do país é de: \n${d.density}`);
   if (d.timezone !== "Não informado")
     list1.push(`Este país fica no fuso horário: \n${d.timezone}`);
   if (d.dependent !== "Não informado")
