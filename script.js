@@ -213,6 +213,19 @@ const totalAttemptsPerTip = 2;
 let wrongGuesses = [];
 let allGuesses = [];
 
+window.addEventListener("beforeunload", function (e) {
+  const gameView = document.getElementById("game-view");
+  const resultScreen = document.getElementById("result-screen");
+  if (
+    gameView &&
+    gameView.style.display === "block" &&
+    (!resultScreen || resultScreen.style.display !== "block")
+  ) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
 async function initGame() {
   document.getElementById("setup-view").style.display = "block";
   document.getElementById("game-view").style.display = "none";
