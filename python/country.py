@@ -75,62 +75,65 @@ class Country:
         
     def get_tips(self, level):
 
-        first_tips = []
-
         area_formatted = f"{self.area:,}".replace(",", ".") if self.area else "Não informado"
-        first_tips.append(f"A área do país é de: \n {area_formatted} km²") if area_formatted != "Não informado" else None
 
         population_formatted = f"{self.population:,}".replace(",", ".") if self.population else "Não informado"
-        first_tips.append(f"A população do país é de: \n {population_formatted} habitantes") if population_formatted != "Não informado" else None
 
         density_formatted = f"{self.density:.2f}".replace(".", ",") if self.density else "Não informado"
-        first_tips.append(f"A densidade demográfica do país é de: \n {density_formatted} hab/km²") if density_formatted != "Não informado" else None
 
         timezone_text = self.timezone if self.timezone else "Não informado"
-        first_tips.append(f"Este país fica no fuso horário: \n {timezone_text}") if timezone_text != "Não informado" else None
 
         dependency_status = "Sim" if self.dependent else "Não (País Soberano)"
-        first_tips.append(f"Este país é independente? \n {dependency_status}")
-
-        second_tips = []
 
         continent_text = self.continent if self.continent else "Não informado"
-        second_tips.append(f"Este país está localizado no continente: \n {continent_text}") if continent_text != "Não informado" else None
 
         currencies_text = ", ".join(self.currencies_symbol) if self.currencies_symbol else "Não informado"
-        second_tips.append(f"Moedas adotadas no país: \n {currencies_text}") if currencies_text != "Não informado" else None
 
         hdi_formatted = f"{self.hdi}".replace(".", ",") if self.hdi else "Não informado"
-        second_tips.append(f"O IDH aproximado deste país é: \n {hdi_formatted}") if hdi_formatted != "Não informado" else None
 
         gdp_formatted = f"US$ {self.gdp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if self.gdp else "Não informado"
-        second_tips.append(f"O PIB total deste país é de: \n {gdp_formatted}") if gdp_formatted != "Não informado" else None
-
-        
-        third_tips = []
 
         languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
-        third_tips.append(f"Os idiomas falados neste país são: \n {languages_text}") if languages_text != "Não informado" else None
-
+        
         capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
-        third_tips.append(f"A capital deste país é: \n {capitals_text}") if capitals_text != "Não informado" else None
 
         borders_text = ", ".join(self.borders) if self.borders else "Sem Fronteiras (Ilha)"
-        third_tips.append(f"As fronteiras deste país são: \n {borders_text}")
         
         flag_emoji = self.flag if self.flag else "Não informado"
-        third_tips.append(f"A bandeira deste país é: \n {flag_emoji}") if flag_emoji != "Não informado" else None
 
         if level == 1:
+            tips = [
+                f"A área do país é de: \n {area_formatted} km²", 
+                f"A população do país é de: \n {population_formatted} habitantes", 
+                f"A densidade demográfica é de: \n {density_formatted} hab/km²", 
+                f"Este país fica no fuso horário: \n {timezone_text}", 
+                f"Este país é independente? \n {dependency_status}"
+            ]
 
-            return random.choice(first_tips) if first_tips else "Nenhuma dica disponível para este nível."
+            ready_tips = list(filter(lambda tip: "Não informado" not in tip, tips))
+            return random.choice(ready_tips)
             
         elif level == 2:
-            
-            return random.choice(second_tips) if second_tips else "Nenhuma dica disponível para este nível."
-            
+            tips = [
+                f"Este país está localizado no continente: \n {continent_text}",  
+                f"O símbolo da moeda deste país é: \n {currencies_text}", 
+                f"O IDH aproximado deste país é: \n {hdi_formatted}", 
+                f"O PIB total deste país é de: \n {gdp_formatted}"
+            ]
+
+            ready_tips = list(filter(lambda tip: "Não informado" not in tip, tips))
+            return random.choice(ready_tips)
+
         elif level == 3:
-            return random.choice(third_tips) if third_tips else "Nenhuma dica disponível para este nível."
+            tips = [
+                f"Os idiomas falados neste país são: \n {languages_text}", 
+                f"A capital deste país é: \n {capitals_text}", 
+                f"As fronteiras deste país são: \n {borders_text}",
+                f"O bandeira deste país é: \n {flag_emoji}"
+            ]
+
+            ready_tips = list(filter(lambda tip: "Não informado" not in tip, tips))
+            return random.choice(ready_tips)
             
         return "Nível de dica inválido."
         
