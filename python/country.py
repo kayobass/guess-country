@@ -1,6 +1,6 @@
 import requests
 import random
-
+import constants
 class Country:    
     def __init__(self, code, name):
         self.code = code
@@ -19,6 +19,10 @@ class Country:
         self.borders = []
         self.flag = None
         self.__implement_data()
+        self.__mapa_paises = {}
+        for item in constants.COUNTRIES_DATABASE:
+            for codigo, nome in item.items():
+                self.__mapa_paises[codigo] = nome
 
     def __implement_data(self):
         data = self.__get_data()
@@ -97,7 +101,12 @@ class Country:
 
         capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
 
-        borders_text = ", ".join(self.borders) if self.borders else "Sem Fronteiras (Ilha)"
+        nomes_fronteiras = []
+        for codigo in self.borders:
+            codigo_lower = codigo.lower()
+            nome = self.__mapa_paises.get(codigo_lower, codigo)
+            nomes_fronteiras.append(nome)
+        borders_text = ", ".join(nomes_fronteiras) if self.borders else "Sem Fronteiras (Ilha)"
         
         flag_emoji = self.flag if self.flag else "Não informado"
 
@@ -141,7 +150,13 @@ class Country:
         languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
         capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
         currencies_text = ", ".join(self.currencies_symbol) if self.currencies_symbol else "Não informado"
-        borders_text = ", ".join(self.borders) if self.borders else "Nenhuma (Ilha)"
+        
+        nomes_fronteiras = []
+        for codigo in self.borders:
+            codigo_lower = codigo.lower()
+            nome = self.__mapa_paises.get(codigo_lower, codigo)
+            nomes_fronteiras.append(nome)
+        borders_text = ", ".join(nomes_fronteiras) if self.borders else "Sem Fronteiras (Ilha)"
         
         population_formatted = f"{self.population:,}".replace(",", ".") if self.population else "Não informado"
         area_formatted = f"{self.area:,}".replace(",", ".") if self.area else "Não informado"
