@@ -206,6 +206,13 @@ const COUNTRIES_DATABASE = [
   { kos: "Kosovo" },
 ];
 
+const codeToCountryName = {};
+COUNTRIES_DATABASE.forEach((item) => {
+  const code = Object.keys(item)[0];
+  const name = Object.values(item)[0];
+  codeToCountryName[code] = name;
+});
+
 const allCountryNames = COUNTRIES_DATABASE.map(
   (item) => Object.values(item)[0],
 );
@@ -489,7 +496,12 @@ function parseCountryDetails(data, name, code) {
 
   let borders = "Nenhuma (Ilha)";
   if (data.borders && Array.isArray(data.borders) && data.borders.length > 0) {
-    borders = data.borders.join(", ");
+    // Converte cada código da API para minúsculo antes de buscar
+    const borderNames = data.borders.map((code) => {
+      const lowerCode = code.toLowerCase();
+      return codeToCountryName[lowerCode] || code;
+    });
+    borders = borderNames.join(", ");
   }
 
   let formatNum = (num) =>
@@ -631,8 +643,6 @@ function processGuess() {
   const guess = inputEl.value.trim();
   if (!guess) return;
 
-  closeSuggestions();
-
   if (!hasUnsavedProgress) {
     hasUnsavedProgress = true;
   }
@@ -660,6 +670,13 @@ function processGuess() {
     attempt = 0;
     tipLevel++;
     if (tipLevel > 3) {
+      // Atualiza a vida para zero antes de finalizar
+      const remaining = 0;
+      const percentage = 0;
+      document.getElementById("life-fill").style.width = `${percentage}%`;
+      document.getElementById("life-text").innerText =
+        `(${remaining}/${totalAttemptsPerTip})`;
+
       endGame(false);
       return;
     } else {
