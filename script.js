@@ -1,4 +1,3 @@
-// Função para remover acentos
 function removeAcentos(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -390,7 +389,6 @@ inputElement.addEventListener("keydown", (e) => {
       // Preenche o input e fecha o dropdown
       inputElement.value = currentSuggestions[selectedIndex];
       closeSuggestions();
-      // Agora envia automaticamente o palpite
       processGuess();
     }
   } else if (e.key === "Escape") {
@@ -403,8 +401,6 @@ document.addEventListener("click", (e) => {
     closeSuggestions();
   }
 });
-
-// ---------- JOGO (restante inalterado) ----------
 
 let currentCountry = null;
 let tipLevel = 1;
@@ -726,7 +722,6 @@ function processGuess() {
     attempt = 0;
     tipLevel++;
     if (tipLevel > 3) {
-      // Atualiza a vida para zero antes de finalizar
       const remaining = 0;
       const percentage = 0;
       document.getElementById("life-fill").style.width = `${percentage}%`;
