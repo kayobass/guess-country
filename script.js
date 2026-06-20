@@ -8,6 +8,12 @@ function nomesIguais(nome1, nome2) {
   return normalizar(nome1) === normalizar(nome2);
 }
 
+function formatDrivingSide(side) {
+  if (side === "left") return "Esquerda";
+  if (side === "right") return "Direita";
+  return "Não informado";
+}
+
 const COUNTRIES_DATABASE = [
   { abw: "Aruba" },
   { afg: "Afeganistão" },
@@ -464,24 +470,45 @@ async function initGame() {
 
 async function fetchCountryData(code) {
   try {
-    const url = `https://restcountries.com/v4/alpha/${code}`;
-    const response = await fetch(url);
-    if (response.ok) {
-      const json = await response.json();
-      return json[0];
+    const url = "http://93.115.101.142:15042/country";
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: code }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Erro do backend:", errorData);
+      return null;
     }
+
+    const data = await response.json();
+
+    if (
+      data.summary &&
+      data.summary.data &&
+      data.summary.data.objects &&
+      data.summary.data.objects.length > 0
+    ) {
+      const countryData = data.summary.data.objects[0];
+      return countryData;
+    }
+
+    console.warn("Nenhum país encontrado para o código:", code);
     return null;
   } catch (e) {
+    console.error("Erro ao conectar com o backend:", e);
     return null;
   }
 }
 
 function parseCountryDetails(data, name, code) {
   let capitals = "Não informado";
-  if (data.capital && data.capital.length > 0 && data.capital[0]) {
-    capitals = Array.isArray(data.capital)
-      ? data.capital.join(", ")
-      : data.capital;
+  if (data.capitals && data.capitals.length > 0 && data.capitals[0]) {
+    capitals = data.capitals.map((capital) => capital.name).join(", ");
   }
 
   let currencies = "Não informado";
@@ -534,7 +561,7 @@ function parseCountryDetails(data, name, code) {
   let formatNum = (num) =>
     num ? num.toLocaleString("pt-BR") : "Não informado";
 
-  let flagSvg = data.flag ? data.flag.svg : null;
+  let flagSvg = data.flag ? data.flag.url_svg : null;
   let flagEmoji = data.flag && data.flag.emoji ? data.flag.emoji : "";
 
   return {
@@ -542,22 +569,26 @@ function parseCountryDetails(data, name, code) {
     code: code.toUpperCase(),
     capital: capitals,
     continent: data.region || "Não informado",
-    dependent: data.independent ? "Sim" : "Não (País Soberano)",
-    area: data.area ? `${formatNum(data.area)} km²` : "Não informado",
+    dependent: data.classification.dependency ? "Não (País Soberano)" : "Sim",
+    area:
+      data.area && typeof data.area === "object" && data.area.kilometers
+        ? `${formatNum(data.area.kilometers)} km²`
+        : "Não informado",
     population: data.population
       ? `${formatNum(data.population)} habitantes`
       : "Não informado",
-    density: data.density
-      ? `${data.density.toFixed(2).replace(".", ",")} hab/km²`
-      : "Não informado",
-    timezone:
-      data.timezones && data.timezones[0] ? data.timezones[0] : "Não informado",
-    currencySymbol: currencies || "Não informado",
-    hdi: data.hdi ? data.hdi.toString().replace(".", ",") : "Não informado",
-    gdp:
-      data.gdp && data.gdp.total
-        ? `US$ ${data.gdp.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+    density:
+      data.population && data.area.kilometers
+        ? `${(data.population / data.area.kilometers)
+            .toFixed(2)
+            .replace(".", ",")} hab/km²`
         : "Não informado",
+    timezone:
+      Array.isArray(data.timezones) && data.timezones.length > 0
+        ? data.timezones.join(", ")
+        : "Não informado",
+    drivingSide: formatDrivingSide(data.cars && data.cars.driving_side),
+    currencySymbol: currencies || "Não informado",
     borders: borders,
     idioms: idioms,
     flagSvg: flagSvg,
@@ -584,10 +615,8 @@ function generateTipsGroups(d) {
     list2.push(`Este país está localizado no continente: \n${d.continent}`);
   if (d.currencySymbol !== "Não informado")
     list2.push(`O símbolo da moeda deste país é: \n${d.currencySymbol}`);
-  if (d.hdi !== "Não informado")
-    list2.push(`O IDH aproximado deste país é: \n${d.hdi}`);
-  if (d.gdp !== "Não informado")
-    list2.push(`O PIB total deste país é de: \n${d.gdp}`);
+  if (d.drivingSide !== "Não informado")
+    list2.push(`O lado de direção neste país é: \n${d.drivingSide}`);
   if (list2.length === 0) list2 = ["Dica indisponível para este país."];
 
   let list3 = [];
@@ -742,9 +771,8 @@ function endGame(isWin) {
     <div class="detail-item"><strong>📉 Densidade:</strong> ${d.density}</div>
     <div class="detail-item"><strong>🗣️ Idiomas:</strong> ${d.idioms}</div>
     <div class="detail-item"><strong>🪙 Moeda (Símbolo):</strong> ${d.currencySymbol}</div>
-    <div class="detail-item"><strong>🕒 Timezone:</strong> ${d.timezone}</div>
-    <div class="detail-item"><strong>📊 IDH:</strong> ${d.hdi}</div>
-    <div class="detail-item"><strong>💰 PIB:</strong> ${d.gdp}</div>
+    <div class="detail-item"><strong>🕒 Fusos:</strong> ${d.timezone}</div>
+    <div class="detail-item"><strong>🚗 Lado de Direção:</strong> ${d.drivingSide}</div>
     <div class="detail-item"><strong>🗺️ Fronteiras:</strong> ${d.borders}</div>
   `;
 

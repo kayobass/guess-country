@@ -11,18 +11,17 @@ class Country:
         self.area = None
         self.population = None
         self.timezone = None
+        self.driving_side = None
         self.currencies_symbol = []
         self.idioms = []
-        self.hdi = None
-        self.gdp = None
         self.density = None
         self.borders = []
         self.flag = None
         self.__implement_data()
-        self.__mapa_paises = {}
+        self.__map_countries = {}
         for item in constants.COUNTRIES_DATABASE:
             for codigo, nome in item.items():
-                self.__mapa_paises[codigo] = nome
+                self.__map_countries[codigo] = nome
 
     def __implement_data(self):
         data = self.__get_data()
@@ -37,7 +36,19 @@ class Country:
             self.population = data.get('population')
             
             timezone_list = data.get('timezones')
-            self.timezone = timezone_list[0] if isinstance(timezone_list, list) and timezone_list else None
+            self.timezone = ", ".join(timezone_list) if isinstance(timezone_list, list) and timezone_list else None
+
+            cars_data = data.get('cars')
+            if isinstance(cars_data, dict):
+                driving_side = cars_data.get('driving_side')
+                if driving_side == 'left':
+                    self.driving_side = 'Esquerda'
+                elif driving_side == 'right':
+                    self.driving_side = 'Direita'
+                else:
+                    self.driving_side = None
+            else:
+                self.driving_side = None
             
             currencies_data = data.get('currencies')
             if isinstance(currencies_data, list):
@@ -53,12 +64,10 @@ class Country:
                     if native_name: 
                         self.idioms.append(native_name[0] if isinstance(native_name, list) else native_name)
 
-            self.hdi = data.get("hdi")
-            
-            gdp_data = data.get("gdp")
-            self.gdp = gdp_data.get("total") if isinstance(gdp_data, dict) else None
-            
-            self.density = data.get("density")
+            if self.area and self.population:
+                self.density = self.population / self.area
+            else:
+                self.density = None
             
             borders_list = data.get("borders")
             self.borders = borders_list if isinstance(borders_list, list) else []
@@ -87,15 +96,13 @@ class Country:
 
         timezone_text = self.timezone if self.timezone else "Não informado"
 
+        driving_side_text = self.driving_side if self.driving_side else "Não informado"
+
         dependency_status = "Sim" if self.dependent else "Não (País Soberano)"
 
         continent_text = self.continent if self.continent else "Não informado"
 
         currencies_text = ", ".join(self.currencies_symbol) if self.currencies_symbol else "Não informado"
-
-        hdi_formatted = f"{self.hdi}".replace(".", ",") if self.hdi else "Não informado"
-
-        gdp_formatted = f"US$ {self.gdp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if self.gdp else "Não informado"
 
         languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
 
@@ -104,7 +111,7 @@ class Country:
         nomes_fronteiras = []
         for codigo in self.borders:
             codigo_lower = codigo.lower()
-            nome = self.__mapa_paises.get(codigo_lower, codigo)
+            nome = self.__map_countries.get(codigo_lower, codigo)
             nomes_fronteiras.append(nome)
         borders_text = ", ".join(nomes_fronteiras) if self.borders else "Sem Fronteiras (Ilha)"
         
@@ -125,9 +132,7 @@ class Country:
         elif level == 2:
             tips = [
                 f"Este país está localizado no continente: \n {continent_text}",  
-                f"O símbolo da moeda deste país é: \n {currencies_text}", 
-                f"O IDH aproximado deste país é: \n {hdi_formatted}", 
-                f"O PIB total deste país é de: \n {gdp_formatted}"
+                f"O símbolo da moeda deste país é: \n {currencies_text}"
             ]
 
             ready_tips = list(filter(lambda tip: "Não informado" not in tip, tips))
@@ -137,6 +142,7 @@ class Country:
             tips = [
                 f"Os idiomas falados neste país são: \n {languages_text}", 
                 f"A capital deste país é: \n {capitals_text}", 
+                f"O lado de direção neste país é: \n {driving_side_text}",
                 f"As fronteiras deste país são: \n {borders_text}",
                 f"A bandeira deste país é: \n {flag_emoji}"
             ]
@@ -150,20 +156,18 @@ class Country:
         languages_text = ", ".join(self.idioms) if self.idioms else "Não informado"
         capitals_text = ", ".join(self.capital) if self.capital else "Não informado"
         currencies_text = ", ".join(self.currencies_symbol) if self.currencies_symbol else "Não informado"
+        driving_side_text = self.driving_side if self.driving_side else "Não informado"
         
         nomes_fronteiras = []
         for codigo in self.borders:
             codigo_lower = codigo.lower()
-            nome = self.__mapa_paises.get(codigo_lower, codigo)
+            nome = self.__map_countries.get(codigo_lower, codigo)
             nomes_fronteiras.append(nome)
         borders_text = ", ".join(nomes_fronteiras) if self.borders else "Sem Fronteiras (Ilha)"
         
         population_formatted = f"{self.population:,}".replace(",", ".") if self.population else "Não informado"
         area_formatted = f"{self.area:,}".replace(",", ".") if self.area else "Não informado"
         density_formatted = f"{self.density:.2f}".replace(".", ",") if self.density else "Não informado"
-        gdp_formatted = f"US$ {self.gdp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if self.gdp else "Não informado"
-        hdi_formatted = f"{self.hdi}".replace(".", ",") if self.hdi else "Não informado"
-        
         dependency_status = "Sim" if self.dependent else "Não (País Soberano)"
         flag_emoji = self.flag if self.flag else "🏳️"
 
@@ -183,8 +187,7 @@ class Country:
             f" 🗣️ Idiomas: {languages_text}\n"
             f" 🪙 Símbolo da Moeda: {currencies_text}\n"
             f" 🕒 Fuso Horário (Timezone): {self.timezone or 'Não informado'}\n"
-            f" 📊 IDH: {hdi_formatted}\n"
-            f" 💰 PIB Total: {gdp_formatted}\n"
+            f" 🚗 Lado de Direção: {driving_side_text}\n"
             f"--- Geopolítica ---\n"
             f" 🗺️ Fronteiras: {borders_text}\n"
             f"{'='*40}"
