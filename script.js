@@ -565,7 +565,7 @@ function parseCountryDetails(data, name, code) {
     code: code.toUpperCase(),
     capital: capitals,
     continent: data.region || "Não informado",
-    dependent: data.classification.dependency ? "Não (País Soberano)" : "Sim",
+    dependent: data.classification.dependency ? "Sim" : "Não (País Soberano)",
     area:
       data.area && typeof data.area === "object" && data.area.kilometers
         ? `${formatNum(data.area.kilometers)} km²`

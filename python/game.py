@@ -24,10 +24,17 @@ class Game:
         print(" Você tem exatamente 2 chances por dica.".center(50))
         print("="*50 + "\n")
 
+    def normalize_guess(self, guess: str) -> str:
+        import unicodedata
+        nfkd = unicodedata.normalize('NFKD', guess)
+        return "".join([c for c in nfkd if not unicodedata.combining(c)]).lower().strip()
+
     def start(self):
         self.start_screen()
         code, name = self.get_random_country_node()
         country = Country(code, name)
+
+        normalized_correct = self.normalize_guess(country.name)
 
         try:
             for tip_level in range(1, 4):
@@ -40,8 +47,9 @@ class Game:
                     print(f"❤️  Vida: {life_bar}")
                     
                     guess = input("⌨️  Digite o nome do país: ").strip()
+                    normalized_guess = self.normalize_guess(guess)
 
-                    if guess.lower() == country.name.lower():
+                    if normalized_guess == normalized_correct:
                         print("\n" + "🎉"*15)
                         print(" PARABÉNS! Você acertou o país! ".center(45))
                         print("🎉"*15)
