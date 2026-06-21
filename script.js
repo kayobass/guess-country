@@ -466,7 +466,7 @@ async function initGame() {
 
 async function fetchCountryData(code) {
   try {
-    const url = "http://93.115.101.142:15042/country";
+    const url = "https://guess-backend-lbjx.onrender.com/country";
     const response = await fetch(url, {
       method: "POST",
       headers: {
