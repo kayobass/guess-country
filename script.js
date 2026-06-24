@@ -603,7 +603,7 @@ function generateTipsGroups(d) {
   if (d.timezone !== "Não informado")
     list1.push(`Este país fica no fuso horário: \n${d.timezone}`);
   if (d.dependent !== "Não informado")
-    list1.push(`Este país é independente? \n${d.dependent}`);
+    list1.push(`Este país é dependente? \n${d.dependent}`);
   if (list1.length === 0) list1 = ["Dica indisponível para este país."];
 
   let list2 = [];
